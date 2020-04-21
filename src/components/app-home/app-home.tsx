@@ -1,4 +1,4 @@
-import { Component, State, h } from "@stencil/core";
+import { Build, Component, State, h } from "@stencil/core";
 import { alertController } from "@ionic/core";
 
 import { Note } from "../../interfaces/note";
@@ -13,6 +13,9 @@ export class AppHome {
   public navCtrl = document.querySelector("ion-router");
 
   async componentDidLoad() {
+    if (Build.isServer) {
+      return;
+    }
     this.navCtrl.addEventListener("ionRouteDidChange", async () => {
       this.notes = [...(await NotesService.load())];
     });

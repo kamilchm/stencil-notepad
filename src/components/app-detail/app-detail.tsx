@@ -1,4 +1,4 @@
-import { Component, State, Prop, h } from "@stencil/core";
+import { Build, Component, State, Prop, h } from "@stencil/core";
 
 import { Note } from "../../interfaces/note";
 import { NotesService } from "../../services/notes";
@@ -19,8 +19,11 @@ export class AppDetail {
   };
 
   async componentDidLoad() {
+    if (Build.isServer) {
+      return;
+    }
     await NotesService.load();
-    this.note = await NotesService.getNote(this.id);
+    this.note = NotesService.getNote(this.id);
   }
 
   noteChanged(ev) {
