@@ -1,7 +1,7 @@
-import { Build, Component, State, Prop, h } from "@stencil/core";
+import { Component, State, Prop, h } from "@stencil/core";
 
-import { Note } from "../../interfaces/note";
-import { NotesService } from "../../services/notes";
+import * as Notes from "../../model/notes";
+import { state } from "../store";
 
 @Component({
   tag: "app-detail",
@@ -12,26 +12,23 @@ export class AppDetail {
 
   @Prop() id: string;
 
-  @State() note: Note = {
+  @State() note: Notes.Note = {
     id: null,
     title: "",
     content: ""
   };
 
   async componentDidLoad() {
-    if (Build.isServer) {
-      return;
-    }
-    await NotesService.load();
-    this.note = NotesService.getNote(this.id);
+    state.notes = await Notes.load();
+    this.note = Notes.get(state.notes)(this.id);
   }
 
   noteChanged(ev) {
-    NotesService.updateNote(this.note, ev.target.value);
+    state.notes = Notes.update(state.notes)(this.note, ev.target.value);
   }
 
   deleteNote() {
-    NotesService.deleteNote(this.note);
+    setTimeout(() => state.notes = Notes.del(state.notes)(this.note), 500);
     this.navCtrl.back();
   }
 

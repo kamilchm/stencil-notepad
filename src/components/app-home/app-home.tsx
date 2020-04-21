@@ -1,28 +1,20 @@
-import { Build, Component, State, h } from "@stencil/core";
+import { Component, h } from "@stencil/core";
 import { alertController } from "@ionic/core";
 
-import { Note } from "../../interfaces/note";
-import { NotesService } from "../../services/notes";
+import * as Notes from "../../model/notes";
+import { state } from "../store";
 
 @Component({
   tag: "app-home",
   styleUrl: "app-home.css",
 })
 export class AppHome {
-  @State() notes: Note[] = [];
-  public navCtrl = document.querySelector("ion-router");
-
   async componentDidLoad() {
-    if (Build.isServer) {
-      return;
-    }
-    this.navCtrl.addEventListener("ionRouteDidChange", async () => {
-      this.notes = [...(await NotesService.load())];
-    });
+    state.notes = await Notes.load();
   }
 
   async addNote() {
-    let alert = await alertController.create({
+    const alert = await alertController.create({
       header: "New note",
       message: "What should the title of this note be?",
       inputs: [{ type: "text", name: "title" }],
@@ -31,8 +23,7 @@ export class AppHome {
         {
           text: "Save",
           handler: async (data) => {
-            NotesService.createNote(data.title);
-            this.notes = [...(await NotesService.load())];
+            state.notes = Notes.add(state.notes)(data.title);
           },
         },
       ],
@@ -56,7 +47,7 @@ export class AppHome {
 
       <ion-content>
         <ion-list>
-          {this.notes.map(note => (
+          {state.notes.map(note => (
             <ion-item button detail href={`/notes/${note.id}`} routerDirection="forward">
               <ion-label>{note.title}</ion-label>
             </ion-item>
